@@ -33,12 +33,14 @@ public class StatusCommand implements Callable<Integer> {
         String containerState = "not found";
         String containerImage = "";
         String containerPorts = "";
+        String effectiveEndpoint = global.endpoint;
         try {
             Optional<DockerClient.ContainerInfo> info = docker.inspectContainer(global.container);
             if (info.isPresent()) {
                 containerState = info.get().state();
                 containerImage = info.get().image();
                 containerPorts = info.get().ports();
+                effectiveEndpoint = global.endpointFromPorts(containerPorts, global.endpoint);
             }
         } catch (DockerException e) {
             containerState = "error: " + e.getMessage();
@@ -48,7 +50,7 @@ public class StatusCommand implements Callable<Integer> {
         String serverVersion = "unavailable";
         String serverEdition = "";
         boolean reachable = false;
-        FlociHttpClient client = new FlociHttpClient(global.endpoint);
+        FlociHttpClient client = new FlociHttpClient(effectiveEndpoint);
         try {
             var health = client.health();
             serverVersion = health.version();
@@ -61,7 +63,7 @@ public class StatusCommand implements Callable<Integer> {
         data.put("state", containerState);
         data.put("image", containerImage);
         data.put("ports", containerPorts);
-        data.put("endpoint", global.endpoint);
+        data.put("endpoint", effectiveEndpoint);
         data.put("reachable", reachable);
         data.put("version", serverVersion);
         data.put("edition", serverEdition);
@@ -81,7 +83,7 @@ public class StatusCommand implements Callable<Integer> {
         printer.println("  Container:  " + global.container + "  " + stateColor);
         if (!containerImage.isBlank()) printer.println("  Image:      " + containerImage);
         if (!containerPorts.isBlank()) printer.println("  Ports:      " + containerPorts);
-        printer.println("  Endpoint:   " + global.endpoint);
+        printer.println("  Endpoint:   " + effectiveEndpoint);
         printer.println("  Reachable:  " + (reachable ? Ansi.green("yes") : Ansi.red("no")));
         if (reachable) {
             printer.println("  Version:    " + serverVersion);
@@ -95,4 +97,5 @@ public class StatusCommand implements Callable<Integer> {
 
         return 0;
     }
+
 }

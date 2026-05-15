@@ -4,7 +4,18 @@ import io.floci.cli.GlobalOptions;
 import io.floci.cli.doctor.Check;
 import io.floci.cli.doctor.CheckResult;
 import io.floci.cli.doctor.CheckStatus;
-import io.floci.cli.doctor.checks.*;
+import io.floci.cli.docker.DockerClient;
+import io.floci.cli.doctor.checks.AwsCliEndpointCheck;
+import io.floci.cli.doctor.checks.AwsCliS3PathStyleCheck;
+import io.floci.cli.doctor.checks.ContainerRunningCheck;
+import io.floci.cli.doctor.checks.DockerDaemonCheck;
+import io.floci.cli.doctor.checks.DockerInstalledCheck;
+import io.floci.cli.doctor.checks.DockerSocketCheck;
+import io.floci.cli.doctor.checks.DockerVersionCheck;
+import io.floci.cli.doctor.checks.EndpointReachableCheck;
+import io.floci.cli.doctor.checks.ImagePresentCheck;
+import io.floci.cli.doctor.checks.ImageVersionCheck;
+import io.floci.cli.doctor.checks.PortAvailableCheck;
 import io.floci.cli.output.Ansi;
 import io.floci.cli.output.OutputFormat;
 import io.floci.cli.output.Printer;
@@ -43,27 +54,30 @@ public class DoctorCommand implements Callable<Integer> {
             new ContainerRunningCheck(),
             new EndpointReachableCheck(),
             new AwsCliEndpointCheck(),
-            new AwsCliS3PathStyleCheck(),
-            new SdkRustS3XmlCheck(),
-            new SdkGoEndpointCheck()
+            new AwsCliS3PathStyleCheck()
     );
 
     @Override
     public Integer call() {
         Printer printer = global.printer();
         List<CheckResult> results = new ArrayList<>();
+        String effectiveEndpoint = global.resolvedEndpoint(new DockerClient());
 
-        printer.println(Ansi.bold("Floci Doctor") + " — checking your environment");
-        printer.println("");
+        boolean textMode = printer.format() == OutputFormat.text;
 
-        for (Check check : ALL_CHECKS) {
-            CheckResult result = check.run(global.endpoint, global.container);
-            if (checkName != null && !result.name().equals(checkName)) continue;
-            results.add(result);
-            printResult(printer, result);
+        if (textMode) {
+            printer.println(Ansi.bold("Floci Doctor") + " — checking your environment");
+            printer.println("");
         }
 
-        if (printer.format() != OutputFormat.text) {
+        for (Check check : ALL_CHECKS) {
+            CheckResult result = check.run(effectiveEndpoint, global.container);
+            if (checkName != null && !result.name().equals(checkName)) continue;
+            results.add(result);
+            if (textMode) printResult(printer, result);
+        }
+
+        if (!textMode) {
             List<Map<String, Object>> structured = new ArrayList<>();
             for (CheckResult r : results) {
                 Map<String, Object> m = new LinkedHashMap<>();

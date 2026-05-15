@@ -40,7 +40,7 @@ public class DockerClient {
     public Optional<ContainerInfo> inspectContainer(String name) throws DockerException {
         try {
             String out = run("docker", "inspect", "--format",
-                    "{{.Id}}|{{.Name}}|{{.Config.Image}}|{{.Status}}|{{.State.Status}}|{{range $p, $b := .NetworkSettings.Ports}}{{$p}} {{end}}",
+                    "{{.Id}}|{{.Name}}|{{.Config.Image}}|{{.State.Status}}|{{.State.Status}}|{{range $p, $b := .NetworkSettings.Ports}}{{if $b}}{{(index $b 0).HostPort}}->{{$p}} {{end}}{{end}}",
                     name);
             if (out.isBlank()) return Optional.empty();
             String[] parts = out.trim().split("\\|", -1);
@@ -52,7 +52,7 @@ public class DockerClient {
                     parts.length > 4 ? parts[4] : "",
                     parts.length > 5 ? parts[5].trim() : ""));
         } catch (DockerException e) {
-            if (e.getMessage() != null && e.getMessage().contains("No such")) {
+            if (e.getMessage() != null && e.getMessage().toLowerCase().contains("no such")) {
                 return Optional.empty();
             }
             throw e;

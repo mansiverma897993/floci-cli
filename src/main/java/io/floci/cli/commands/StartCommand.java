@@ -104,6 +104,9 @@ public class StartCommand implements Callable<Integer> {
             return 0;
         }
 
+        // Update endpoint to match the bound host port before polling readiness
+        global.endpoint = "http://localhost:" + port;
+
         // Wait for readiness
         printer.println(Ansi.gray("Waiting for Floci to be ready..."));
         WaitCommand wait = new WaitCommand();

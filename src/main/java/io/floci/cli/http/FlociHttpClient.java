@@ -29,7 +29,7 @@ public class FlociHttpClient {
         JsonNode node = getJson("/_floci/health");
         return new HealthInfo(
                 node.path("version").asText("unknown"),
-                node.path("edition").asText("community"),
+                node.path("original_edition").asText(node.path("edition").asText("community")),
                 node.path("services").isArray()
                         ? MAPPER.convertValue(node.path("services"), String[].class)
                         : new String[0]);
@@ -47,7 +47,7 @@ public class FlociHttpClient {
         JsonNode node = getJson("/_floci/info");
         return new ServerInfo(
                 node.path("version").asText("unknown"),
-                node.path("edition").asText("community"));
+                node.path("original_edition").asText(node.path("edition").asText("community")));
     }
 
     public InitState initState() throws FlociException {

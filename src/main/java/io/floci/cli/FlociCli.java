@@ -14,7 +14,8 @@ import picocli.CommandLine.*;
                 "  floci stop      — stop the container%n" +
                 "  floci status    — show health and version%n" +
                 "  floci doctor    — diagnose environment issues%n" +
-                "  floci logs      — stream container logs%n",
+                "  floci logs      — stream container logs%n" +
+                "  floci env       — print AWS environment variables%n",
         mixinStandardHelpOptions = true,
         versionProvider = FlociCli.VersionProvider.class,
         subcommands = {
@@ -27,6 +28,7 @@ import picocli.CommandLine.*;
                 VersionCommand.class,
                 ServicesCommand.class,
                 DoctorCommand.class,
+                EnvCommand.class,
                 ConfigCommand.class,
                 SnapshotCommand.class,
                 CompletionCommand.class,

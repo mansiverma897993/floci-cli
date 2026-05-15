@@ -3,7 +3,10 @@ package io.floci.cli.commands;
 import io.floci.cli.GlobalOptions;
 import io.floci.cli.http.FlociHttpClient;
 import io.floci.cli.output.Ansi;
+import io.floci.cli.output.OutputFormat;
 import io.floci.cli.output.Printer;
+
+import java.util.Map;
 import picocli.CommandLine.*;
 
 import java.time.Duration;
@@ -30,12 +33,17 @@ public class WaitCommand implements Callable<Integer> {
     public Integer call() {
         Printer printer = global.printer();
         long timeoutMillis = parseDuration(timeout);
-        FlociHttpClient client = new FlociHttpClient(global.endpoint);
+        String effectiveEndpoint = global.resolvedEndpoint(new io.floci.cli.docker.DockerClient());
+        FlociHttpClient client = new FlociHttpClient(effectiveEndpoint);
         Instant deadline = Instant.now().plusMillis(timeoutMillis);
 
         while (Instant.now().isBefore(deadline)) {
             if (isReady(client, service)) {
-                printer.println(Ansi.green("Floci is ready") + " (" + global.endpoint + ")");
+                if (printer.format() != OutputFormat.text) {
+                    printer.structured(Map.of("ready", true, "endpoint", effectiveEndpoint));
+                } else {
+                    printer.println(Ansi.green("Floci is ready") + " (" + effectiveEndpoint + ")");
+                }
                 return 0;
             }
             printSpinner(printer, deadline);

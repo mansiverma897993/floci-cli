@@ -32,7 +32,10 @@ public class VersionCommand implements Callable<Integer> {
         String serverEdition = null;
         String imageDigest = null;
 
-        FlociHttpClient client = new FlociHttpClient(global.endpoint);
+        var docker = new io.floci.cli.docker.DockerClient();
+        String effectiveEndpoint = global.resolvedEndpoint(docker);
+
+        FlociHttpClient client = new FlociHttpClient(effectiveEndpoint);
         try {
             var info = client.info();
             serverVersion = info.version();
@@ -41,7 +44,6 @@ public class VersionCommand implements Callable<Integer> {
 
         // Try to read image digest from Docker (best-effort)
         try {
-            var docker = new io.floci.cli.docker.DockerClient();
             imageDigest = docker.imageDigest("floci/floci").orElse(null);
         } catch (Exception ignored) {}
 
