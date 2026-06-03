@@ -7,6 +7,18 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.3] — 2026-06-02
+
+### Added
+
+- `floci gcp` subcommand group — full GCP emulator lifecycle via `floci gcp start|stop|restart|status|logs|wait|version|services|doctor|env|config|snapshot|completion`
+- `floci gcp start` — launches `floci/floci-gcp:latest` on port 4588, mounts persist dir to `/app/data`
+- `floci gcp env` — prints GCP SDK emulator host variables (`STORAGE_EMULATOR_HOST`, `PUBSUB_EMULATOR_HOST`, `FIRESTORE_EMULATOR_HOST`, `DATASTORE_EMULATOR_HOST`, `SECRET_MANAGER_EMULATOR_HOST`); `--service` flag filters to a specific service (gcs, pubsub, firestore, datastore, secretmanager); supports bash, fish, and powershell shell formats
+- `floci gcp doctor` — GCP-specific diagnostics: Docker checks against the `floci/floci-gcp` image plus GCP environment checks
+- `floci gcp config show|profile|validate` — manage GCP profile configuration
+- `floci config default-product gcp` — `gcp` is now a valid default product alongside `aws` and `az`; bare `floci start` routes to the configured default
+- `floci gcp snapshot` stubs — commands registered but report "not yet available" pending server-side implementation in floci-gcp
+
 ## [0.1.2] — 2026-05-15
 
 ### Fixed
